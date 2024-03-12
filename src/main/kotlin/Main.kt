@@ -3,30 +3,30 @@ package com.github.viagostini
 import java.time.Duration
 
 fun main() {
-    val graph = Network()
+    val network = Network()
 
-    graph.addCity(City("Berlin"))
-    graph.addCity(City("Frankfurt"));
-    graph.addCity(City("Munich"));
-    graph.addCity(City("Cologne"));
+    network.addCity(City("Berlin"))
+    network.addCity(City("Frankfurt"));
+    network.addCity(City("Munich"));
+    network.addCity(City("Cologne"));
 
-    graph.addRide(Ride(City("Berlin"), City("Munich"), Duration.ofHours(4)));
-    graph.addRide(Ride(City("Berlin"), City("Cologne"), Duration.ofHours(8)));
-    graph.addRide(Ride(City("Munich"), City("Frankfurt"), Duration.ofHours(2)));
-    graph.addRide(Ride(City("Cologne"), City("Frankfurt"), Duration.ofHours(1)));
+    network.addRide(Ride(City("Berlin"), City("Munich"), Duration.ofHours(4)));
+    network.addRide(Ride(City("Berlin"), City("Cologne"), Duration.ofHours(8)));
+    network.addRide(Ride(City("Munich"), City("Frankfurt"), Duration.ofHours(2)));
+    network.addRide(Ride(City("Cologne"), City("Frankfurt"), Duration.ofHours(1)));
 
     println("Any path dfs:")
-    val path = graph.anyPathDFS(City("Berlin"), City("Frankfurt"))
+    val path = network.anyPathDFS(City("Berlin"), City("Frankfurt"))
     println(path.totalDuration())
     path.print()
 
     println("\nShortest path:")
-    val shortestPath = graph.shortestPath(City("Berlin"), City("Frankfurt"))
+    val shortestPath = network.shortestPath(City("Berlin"), City("Frankfurt"))
     println(shortestPath.totalDuration())
     shortestPath.print()
 
     println("\nAll paths:")
-    val paths = graph.allPaths(City("Berlin"), City("Frankfurt"))
+    val paths = network.allPaths(City("Berlin"), City("Frankfurt"))
     paths.forEach {
         println(it.totalDuration())
         it.print()
