@@ -18,13 +18,22 @@ fun main() {
     graph.addRide(Ride(City("Munich"), City("Frankfurt"), Duration.ofHours(2)));
     graph.addRide(Ride(City("Cologne"), City("Frankfurt"), Duration.ofHours(1)));
 
+    println("Any path dfs:")
     val path = graph.anyPathDFS(City("Berlin"), City("Frankfurt"))
     println(path.totalDuration())
     path.print()
 
+    println("\nShortest path:")
     val shortestPath = graph.shortestPath(City("Berlin"), City("Frankfurt"))
     println(shortestPath.totalDuration())
     shortestPath.print()
+
+    println("\nAll paths:")
+    val paths = graph.allPaths(City("Berlin"), City("Frankfurt"))
+    paths.forEach {
+        println(it.totalDuration())
+        it.print()
+    }
 }
 
 data class City(val name: String)
@@ -121,6 +130,29 @@ class Network {
         }
 
         return null
+    }
+
+    fun allPaths(from: City, to: City): Sequence<Path> {
+        data class State(val city: City, val path: Path)
+
+        val visited = mutableSetOf<City>()
+        val stack = ArrayDeque<State>()
+
+        stack.addLast(State(from, emptyList()))
+
+        return sequence {
+            while (stack.isNotEmpty()) {
+                val (city, path) = stack.removeLast()
+
+                if (city == to) yield(path)
+
+                if (city in visited) continue
+
+                visited.add(city)
+
+                ridesFrom(city).forEach { stack.addLast(State(it.to, path + it)) }
+            }
+        }
     }
 
     fun anyPathBFS(from: City, to: City): Path? {
