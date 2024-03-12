@@ -1,6 +1,9 @@
 package com.github.viagostini
 
 import java.time.Duration
+import java.util.*
+import kotlin.collections.ArrayDeque
+import kotlin.collections.set
 
 fun main() {
     val graph = Network()
@@ -11,13 +14,17 @@ fun main() {
     graph.addCity(City("Cologne"));
 
     graph.addRide(Ride(City("Berlin"), City("Munich"), Duration.ofHours(4)));
-    graph.addRide(Ride(City("Berlin"), City("Cologne"), Duration.ofHours(3)));
+    graph.addRide(Ride(City("Berlin"), City("Cologne"), Duration.ofHours(8)));
     graph.addRide(Ride(City("Munich"), City("Frankfurt"), Duration.ofHours(2)));
     graph.addRide(Ride(City("Cologne"), City("Frankfurt"), Duration.ofHours(1)));
 
     val path = graph.anyPathDFS(City("Berlin"), City("Frankfurt"))
     println(path.totalDuration())
     path.print()
+
+    val shortestPath = graph.shortestPath(City("Berlin"), City("Frankfurt"))
+    println(shortestPath.totalDuration())
+    shortestPath.print()
 }
 
 data class City(val name: String)
@@ -43,6 +50,9 @@ fun Path?.totalDuration(): Duration {
 class Network {
     private val adjacencyMap = mutableMapOf<City, MutableList<Ride>>()
 
+    private val cities: Set<City>
+        get() = adjacencyMap.keys
+
     fun addCity(city: City) {
         adjacencyMap.putIfAbsent(city, mutableListOf())
     }
@@ -59,6 +69,35 @@ class Network {
 
     private fun ridesFrom(city: City): List<Ride> {
         return adjacencyMap[city] ?: throw IllegalArgumentException("The city '$city' is not in the graph")
+    }
+
+    fun shortestPath(from: City, to: City): Path? {
+        data class State(val city: City, val path: Path, val duration: Duration)
+
+        val shortestDuration = cities.associateWith { Duration.ofSeconds(Long.MAX_VALUE) }.toMutableMap()
+        val queue = PriorityQueue<State>(compareBy { it.duration })
+
+        shortestDuration[from] = Duration.ZERO
+        queue.add(State(from, emptyList(), Duration.ZERO))
+
+        while (queue.isNotEmpty()) {
+            val (city, path, duration) = queue.remove()
+
+            if (city == to) return path
+
+            if (duration != shortestDuration[city]) continue
+
+            ridesFrom(city).forEach {
+                val newDuration = duration + it.duration
+
+                if (newDuration < shortestDuration[it.to]) {
+                    shortestDuration[it.to] = newDuration
+                    queue.add(State(it.to, path + it, newDuration))
+                }
+            }
+        }
+
+        return null
     }
 
     fun anyPathDFS(from: City, to: City): Path? {
