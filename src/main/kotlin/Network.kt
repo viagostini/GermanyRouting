@@ -96,7 +96,10 @@ class Network {
             while (stack.isNotEmpty()) {
                 val (city, path) = stack.removeLast()
 
-                if (city == to) yield(path)
+                if (city == to) {
+                    yield(path)
+                    continue
+                }
 
                 if (city in visited) continue
 
