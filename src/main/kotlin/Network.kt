@@ -14,6 +14,10 @@ class Network {
         adjacencyMap.putIfAbsent(city, mutableListOf())
     }
 
+    fun getCity(name: String): City {
+        return cities.find { it.name == name } ?: throw IllegalArgumentException("City '$name' is not in the graph")
+    }
+
     fun addRide(ride: Ride) {
         val (from, to) = ride
 

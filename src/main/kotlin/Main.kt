@@ -3,33 +3,38 @@ package com.github.viagostini
 import java.time.Duration
 
 fun main() {
-    val network = Network()
+    val rides = RidesDatabase.getRides()
+    val network = createNetwork(rides)
 
-    network.addCity(City("Berlin"))
-    network.addCity(City("Frankfurt"));
-    network.addCity(City("Munich"));
-    network.addCity(City("Cologne"));
-
-    network.addRide(Ride(City("Berlin"), City("Munich"), Duration.ofHours(4)));
-    network.addRide(Ride(City("Berlin"), City("Cologne"), Duration.ofHours(8)));
-    network.addRide(Ride(City("Munich"), City("Frankfurt"), Duration.ofHours(2)));
-    network.addRide(Ride(City("Cologne"), City("Frankfurt"), Duration.ofHours(1)));
+    val from = network.getCity("Berlin Hbf")
+    val to = network.getCity("Berlin-Spandau")
 
     println("Any path dfs:")
-    val path = network.anyPathDFS(City("Berlin"), City("Frankfurt"))
+    val path = network.anyPathDFS(from, to)
     println(path.totalDuration())
     path.print()
 
     println("\nShortest path:")
-    val shortestPath = network.shortestPath(City("Berlin"), City("Frankfurt"))
+    val shortestPath = network.shortestPath(from, to)
     println(shortestPath.totalDuration())
     shortestPath.print()
 
-    println("\nAll paths:")
-    val paths = network.allPaths(City("Berlin"), City("Frankfurt"))
+    println("\nAll paths (taking 3):")
+    val paths = network.allPaths(from, to).take(3)
     paths.forEach {
         println(it.totalDuration())
         it.print()
     }
 }
 
+fun createNetwork(rides: List<Ride>): Network {
+    val network = Network()
+
+    rides.forEach {
+        network.addCity(it.from)
+        network.addCity(it.to)
+        network.addRide(it)
+    }
+
+    return network
+}
