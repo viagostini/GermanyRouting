@@ -12,14 +12,10 @@ object RidesDatabase {
         Database.connect("jdbc:postgresql://localhost:5432/rails_network", user = "admin", password = "admin")
 
     fun getRides(): List<Ride> {
-        val rides = mutableListOf<Ride>()
+        var rides: List<Ride> = listOf()
 
         transaction(db) {
-            Rides
-                .selectAll()
-                .forEach {
-                    rides.add(resultRowToRide(it))
-                }
+            rides = Rides.selectAll().map { resultRowToRide(it) }
         }
 
         return rides

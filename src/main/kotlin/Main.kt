@@ -7,7 +7,7 @@ fun main() {
     val network = createNetwork(rides)
 
     val from = network.getCity("Berlin Hbf")
-    val to = network.getCity("Potsdam Hbf")
+    val to = network.getCity("Warszawa Centralna")
 
     println("Any path dfs:")
     val path = network.anyPathDFS(from, to)
