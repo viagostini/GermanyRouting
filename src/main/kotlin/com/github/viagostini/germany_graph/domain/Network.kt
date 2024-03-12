@@ -1,4 +1,4 @@
-package com.github.viagostini.com.github.viagostini.germany_graph.domain
+package com.github.viagostini.germany_graph.domain
 
 import java.time.Duration
 import java.util.*
@@ -135,5 +135,19 @@ class Network {
 
     override fun toString(): String {
         return adjacencyMap.toString()
+    }
+
+    companion object {
+        fun fromRides(rides: List<Ride>): Network {
+            val network = Network()
+
+            rides.forEach {
+                network.addCity(it.from)
+                network.addCity(it.to)
+                network.addRide(it)
+            }
+
+            return network
+        }
     }
 }

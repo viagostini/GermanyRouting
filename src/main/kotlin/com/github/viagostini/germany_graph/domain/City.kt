@@ -1,3 +1,3 @@
-package com.github.viagostini.com.github.viagostini.germany_graph.domain
+package com.github.viagostini.germany_graph.domain
 
 data class City(val name: String)

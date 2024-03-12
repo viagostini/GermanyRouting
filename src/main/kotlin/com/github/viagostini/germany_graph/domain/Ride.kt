@@ -1,4 +1,4 @@
-package com.github.viagostini.com.github.viagostini.germany_graph.domain
+package com.github.viagostini.germany_graph.domain
 
 import java.time.Duration
 
