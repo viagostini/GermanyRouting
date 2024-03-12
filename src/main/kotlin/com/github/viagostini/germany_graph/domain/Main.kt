@@ -1,6 +1,4 @@
-package com.github.viagostini
-
-import java.time.Duration
+package com.github.viagostini.com.github.viagostini.germany_graph.domain
 
 fun main() {
     val rides = RidesDatabase.getRides()
