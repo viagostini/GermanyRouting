@@ -8,10 +8,10 @@ fun main() {
     graph.addCity(City("Munich"));
     graph.addCity(City("Cologne"));
 
-    graph.addRide(City("Berlin"), City("Munich"));
-    graph.addRide(City("Berlin"), City("Cologne"));
-    graph.addRide(City("Munich"), City("Frankfurt"));
-    graph.addRide(City("Cologne"), City("Frankfurt"));
+    graph.addRide(Ride(City("Berlin"), City("Munich")));
+    graph.addRide(Ride(City("Berlin"), City("Cologne")));
+    graph.addRide(Ride(City("Munich"), City("Frankfurt")));
+    graph.addRide(Ride(City("Cologne"), City("Frankfurt")));
 
     println(graph.ridesFrom(City("Berlin")))
     println(graph.ridesFrom(City("Munich")))
@@ -21,23 +21,26 @@ fun main() {
 }
 
 data class City(val name: String)
+data class Ride(val from: City, val to: City)
 
 class Network {
-    private val adjacencyMap = mutableMapOf<City, List<City>>()
+    private val adjacencyMap = mutableMapOf<City, MutableList<Ride>>()
 
     fun addCity(city: City) {
-        adjacencyMap.putIfAbsent(city, emptyList())
+        adjacencyMap.putIfAbsent(city, mutableListOf())
     }
 
-    fun addRide(from: City, to: City) {
+    fun addRide(ride: Ride) {
+        val (from, to) = ride
+
         if (from !in adjacencyMap || to !in adjacencyMap) {
             throw IllegalArgumentException("Both '$from' and '$to' must be added to the graph first")
         }
 
-        adjacencyMap[from] = adjacencyMap[from]!! + to
+        adjacencyMap[from]!!.add(ride)
     }
 
-    fun ridesFrom(city: City): List<City> {
+    fun ridesFrom(city: City): List<Ride> {
         return adjacencyMap[city] ?: throw IllegalArgumentException("The city '$city' is not in the graph")
     }
 
