@@ -1,33 +1,35 @@
 package com.github.viagostini
 
 fun main() {
-    val graph = Graph()
+    val graph = Network()
 
-    graph.addVertex("Berlin")
-    graph.addVertex("Frankfurt");
-    graph.addVertex("Munich");
-    graph.addVertex("Cologne");
+    graph.addCity(City("Berlin"))
+    graph.addCity(City("Frankfurt"));
+    graph.addCity(City("Munich"));
+    graph.addCity(City("Cologne"));
 
-    graph.addEdge("Berlin", "Munich");
-    graph.addEdge("Berlin", "Cologne");
-    graph.addEdge("Munich", "Frankfurt");
-    graph.addEdge("Cologne", "Frankfurt");
+    graph.addRide(City("Berlin"), City("Munich"));
+    graph.addRide(City("Berlin"), City("Cologne"));
+    graph.addRide(City("Munich"), City("Frankfurt"));
+    graph.addRide(City("Cologne"), City("Frankfurt"));
 
-    println(graph.edgesFrom("Berlin"))
-    println(graph.edgesFrom("Munich"))
-    println(graph.edgesFrom("Cologne"))
-    println(graph.edgesFrom("Frankfurt"))
+    println(graph.ridesFrom(City("Berlin")))
+    println(graph.ridesFrom(City("Munich")))
+    println(graph.ridesFrom(City("Cologne")))
+    println(graph.ridesFrom(City("Frankfurt")))
     println(graph)
 }
 
-class Graph {
-    private val adjacencyMap = mutableMapOf<String, List<String>>()
+data class City(val name: String)
 
-    fun addVertex(city: String) {
+class Network {
+    private val adjacencyMap = mutableMapOf<City, List<City>>()
+
+    fun addCity(city: City) {
         adjacencyMap.putIfAbsent(city, emptyList())
     }
 
-    fun addEdge(from: String, to: String) {
+    fun addRide(from: City, to: City) {
         if (from !in adjacencyMap || to !in adjacencyMap) {
             throw IllegalArgumentException("Both '$from' and '$to' must be added to the graph first")
         }
@@ -35,7 +37,7 @@ class Graph {
         adjacencyMap[from] = adjacencyMap[from]!! + to
     }
 
-    fun edgesFrom(city: String): List<String> {
+    fun ridesFrom(city: City): List<City> {
         return adjacencyMap[city] ?: throw IllegalArgumentException("The city '$city' is not in the graph")
     }
 
