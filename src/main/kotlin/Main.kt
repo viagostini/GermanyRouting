@@ -1,6 +1,6 @@
 package com.github.viagostini
 
-import kotlin.collections.ArrayDeque
+import java.time.Duration
 
 fun main() {
     val graph = Network()
@@ -10,17 +10,18 @@ fun main() {
     graph.addCity(City("Munich"));
     graph.addCity(City("Cologne"));
 
-    graph.addRide(Ride(City("Berlin"), City("Munich")));
-    graph.addRide(Ride(City("Berlin"), City("Cologne")));
-    graph.addRide(Ride(City("Munich"), City("Frankfurt")));
-    graph.addRide(Ride(City("Cologne"), City("Frankfurt")));
+    graph.addRide(Ride(City("Berlin"), City("Munich"), Duration.ofHours(4)));
+    graph.addRide(Ride(City("Berlin"), City("Cologne"), Duration.ofHours(3)));
+    graph.addRide(Ride(City("Munich"), City("Frankfurt"), Duration.ofHours(2)));
+    graph.addRide(Ride(City("Cologne"), City("Frankfurt"), Duration.ofHours(1)));
 
     val path = graph.anyPathDFS(City("Berlin"), City("Frankfurt"))
+    println(path.totalDuration())
     path.print()
 }
 
 data class City(val name: String)
-data class Ride(val from: City, val to: City)
+data class Ride(val from: City, val to: City, val duration: Duration)
 typealias Path = List<Ride>
 
 fun Path?.print() {
@@ -32,6 +33,10 @@ fun Path?.print() {
     val source = this.first().from.name
     val rest = this.joinToString(separator = " -> ") { it.to.name }
     println("$source -> $rest")
+}
+
+fun Path?.totalDuration(): Duration {
+    return listOfNotNull(this?.map { it.duration }).flatten().fold(Duration.ZERO) { acc, duration -> acc + duration }
 }
 
 
