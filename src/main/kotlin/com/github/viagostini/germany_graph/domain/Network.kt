@@ -15,21 +15,20 @@ class Network {
     }
 
     fun getCity(name: String): City {
-        return cities.find { it.name == name } ?: throw IllegalArgumentException("City '$name' is not in the graph")
+        return cities.find { it.name == name } ?: throw CityNotInNetworkException(name)
     }
 
     fun addRide(ride: Ride) {
         val (from, to) = ride
 
-        if (from !in adjacencyMap || to !in adjacencyMap) {
-            throw IllegalArgumentException("Both '$from' and '$to' must be added to the graph first")
-        }
+        if (from !in adjacencyMap) throw CityNotInNetworkException(from.name)
+        if (to !in adjacencyMap) throw CityNotInNetworkException(to.name)
 
         adjacencyMap[from]!!.add(ride)
     }
 
     private fun ridesFrom(city: City): List<Ride> {
-        return adjacencyMap[city] ?: throw IllegalArgumentException("The city '$city' is not in the graph")
+        return adjacencyMap[city] ?: throw CityNotInNetworkException(city.name)
     }
 
     fun shortestPath(from: City, to: City): Path? {

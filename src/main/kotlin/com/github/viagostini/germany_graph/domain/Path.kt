@@ -19,4 +19,6 @@ fun Path?.totalDuration(): Duration {
     return listOfNotNull(this?.map { it.duration }).flatten().fold(Duration.ZERO) { acc, duration -> acc + duration }
 }
 
+fun emptyPath(): Path = emptyList()
+
 
