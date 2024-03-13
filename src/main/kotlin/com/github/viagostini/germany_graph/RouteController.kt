@@ -11,4 +11,14 @@ class RouteController(private val router: Router) {
     fun findShortestPath(@RequestParam from: String, @RequestParam to: String): Path? {
         return router.findShortestPath(from, to)
     }
+
+    @GetMapping("/anyPathDFS")
+    fun findAnyPath(@RequestParam from: String, @RequestParam to: String): Path? {
+        return router.findAnyPathDFS(from, to)
+    }
+
+    @GetMapping("/anyPathBFS")
+    fun findAnyPathBFS(@RequestParam from: String, @RequestParam to: String): Path? {
+        return router.findAnyPathBFS(from, to)
+    }
 }

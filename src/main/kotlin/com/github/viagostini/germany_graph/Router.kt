@@ -21,4 +21,16 @@ class Router(private val rideRepository: RideRepository) {
         val toCity = network.getCity(to)
         return network.shortestPath(fromCity, toCity)
     }
+
+    fun findAnyPathDFS(from: String, to: String): Path? {
+        val fromCity = network.getCity(from)
+        val toCity = network.getCity(to)
+        return network.anyPathDFS(fromCity, toCity)
+    }
+
+    fun findAnyPathBFS(from: String, to: String): Path? {
+        val fromCity = network.getCity(from)
+        val toCity = network.getCity(to)
+        return network.anyPathBFS(fromCity, toCity)
+    }
 }
