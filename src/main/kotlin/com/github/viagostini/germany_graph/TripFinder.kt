@@ -7,7 +7,7 @@ import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Service
 
 @Service
-class Router(private val rideRepository: RideRepository) {
+class TripFinder(private val rideRepository: RideRepository) {
     private lateinit var network: Network
 
     @PostConstruct
@@ -32,5 +32,12 @@ class Router(private val rideRepository: RideRepository) {
         val fromCity = network.getCity(from)
         val toCity = network.getCity(to)
         return network.anyTripBFS(fromCity, toCity)
+    }
+
+    fun findAllTrips(from: String, to: String): Sequence<Trip> {
+        val fromCity = network.getCity(from)
+        val toCity = network.getCity(to)
+
+       return network.allTrips(fromCity, toCity)
     }
 }

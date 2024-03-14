@@ -8,7 +8,7 @@ import org.springframework.boot.runApplication
 @SpringBootApplication
 class Application(
     private val rideRepository: RideRepository,
-    private val router: Router,
+    private val tripFinder: TripFinder,
 ) : CommandLineRunner {
     override fun run(vararg args: String?) {
         val rides = rideRepository.findAll()

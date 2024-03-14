@@ -114,7 +114,7 @@ class Network {
      * @param to the destination city
      * @return sequence of all trips between [from] and [to], or `null` if no path exists
      */
-    fun allPaths(from: City, to: City): Sequence<Trip> {
+    fun allTrips(from: City, to: City): Sequence<Trip> {
         data class State(val city: City, val trip: Trip)
 
         val visited = mutableSetOf<City>()
