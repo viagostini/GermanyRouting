@@ -24,12 +24,12 @@ The API is a Spring Boot Kotlin application that reads the data from the Postgre
 memory. It has a few endpoints to query the network, but currently my focus is not to provide CRUD methods to manage
 the data.
 
-The API endpoints return a JSON with `found` and `trip` fields, where the first one is a boolean indicating if a trip
-was found, and the second one is an array of objects representing the trip. If a trip was not found, the `trip` field
-will be `null`.
+The API endpoints which return only a single trip return a JSON with `found` and `trip` fields, where the first one is a
+boolean indicating if a trip was found, and the second one is an array of rides representing the trip and a `duration`
+field representing the total duration of the trip. If a trip was not found, the `trip` field will be `null`.
 
-In the case of finding all trips, the response will also contain a `count` field with the number of trips found, and a
-`trips` field with an array of arrays of objects representing the trips.
+In the case of endpoints finding all trips, the response will also contain a `count` field with the number of trips
+found, and a `trips` field, where each object is an array of rides.
 
 **Example: Shortest trip between Berlin Hbf and Hamburg Hbf with Dijkstra algorithm**
 ```json
@@ -37,32 +37,42 @@ In the case of finding all trips, the response will also contain a `count` field
 
 {
     "found": true,
-    "trip": [
-        {
-            "from": {
-                "name": "Berlin Hbf"
-            },
-            "to": {
-                "name": "Berlin-Spandau"
-            },
-            "duration": "PT8M"
+    "trip": {
+        "from": {
+            "name": "Berlin Hbf"
         },
-        {
-            "from": {
-                "name": "Berlin-Spandau"
+        "to": {
+            "name": "Hamburg Hbf"
+        },
+        "duration": "PT1H41M",
+        "rides": [
+            {
+                "from": {
+                    "name": "Berlin Hbf"
+                },
+                "to": {
+                    "name": "Berlin-Spandau"
+                },
+                "duration": "PT8M"
             },
-            "to": {
-                "name": "Hamburg Hbf"
-            },
-            "duration": "PT1H33M"
-        }
-    ]
+            {
+                "from": {
+                    "name": "Berlin-Spandau"
+                },
+                "to": {
+                    "name": "Hamburg Hbf"
+                },
+                "duration": "PT1H33M"
+            }
+        ]
+    }
 }
 ```
 
 **Example: Any trip between Berlin Hbf and Hamburg Hbf with DFS algorithm**
 ```json
 // http://localhost:8080/api/trips/anyDFS?from=Berlin%20Hbf&to=Hamburg%20Hbf
+
 
 {
     "found": true,
@@ -105,7 +115,6 @@ In the case of finding all trips, the response will also contain a `count` field
         }
     ]
 }
-
 ```
 
 **Example: Any trip between Berlin Hbf and Hamburg Hbf with BFS algorithm**
@@ -115,17 +124,26 @@ In the case of finding all trips, the response will also contain a `count` field
 
 {
     "found": true,
-    "trip": [
-        {
-            "from": {
-                "name": "Berlin Hbf"
-            },
-            "to": {
-                "name": "Hamburg Hbf"
-            },
-            "duration": "PT1H44M"
-        }
-    ]
+    "trip": {
+        "from": {
+            "name": "Berlin Hbf"
+        },
+        "to": {
+            "name": "Hamburg Hbf"
+        },
+        "duration": "PT1H44M",
+        "rides": [
+            {
+                "from": {
+                    "name": "Berlin Hbf"
+                },
+                "to": {
+                    "name": "Hamburg Hbf"
+                },
+                "duration": "PT1H44M"
+            }
+        ]
+    }
 }
 ```
 
@@ -137,82 +155,100 @@ In the case of finding all trips, the response will also contain a `count` field
     "found": true,
     "count": 2,
     "trips": [
-        [
-            {
-                "from": {
-                    "name": "Berlin Hbf"
-                },
-                "to": {
-                    "name": "Berlin-Spandau"
-                },
-                "duration": "PT8M"
+        {
+            "from": {
+                "name": "Berlin Hbf"
             },
-            {
-                "from": {
-                    "name": "Berlin-Spandau"
-                },
-                "to": {
-                    "name": "Wittenberge"
-                },
-                "duration": "PT39M"
+            "to": {
+                "name": "Hamburg Hbf"
             },
-            {
-                "from": {
-                    "name": "Wittenberge"
+            "duration": "PT1H55M",
+            "rides": [
+                {
+                    "from": {
+                        "name": "Berlin Hbf"
+                    },
+                    "to": {
+                        "name": "Berlin-Spandau"
+                    },
+                    "duration": "PT8M"
                 },
-                "to": {
-                    "name": "Ludwigslust"
+                {
+                    "from": {
+                        "name": "Berlin-Spandau"
+                    },
+                    "to": {
+                        "name": "Wittenberge"
+                    },
+                    "duration": "PT39M"
                 },
-                "duration": "PT16M"
+                {
+                    "from": {
+                        "name": "Wittenberge"
+                    },
+                    "to": {
+                        "name": "Ludwigslust"
+                    },
+                    "duration": "PT16M"
+                },
+                {
+                    "from": {
+                        "name": "Ludwigslust"
+                    },
+                    "to": {
+                        "name": "Hamburg Hbf"
+                    },
+                    "duration": "PT52M"
+                }
+            ]
+        },
+        {
+            "from": {
+                "name": "Berlin Hbf"
             },
-            {
-                "from": {
-                    "name": "Ludwigslust"
-                },
-                "to": {
-                    "name": "Hamburg Hbf"
-                },
-                "duration": "PT52M"
-            }
-        ],
-        [
-            {
-                "from": {
-                    "name": "Berlin Hbf"
-                },
-                "to": {
-                    "name": "Berlin-Spandau"
-                },
-                "duration": "PT8M"
+            "to": {
+                "name": "Hamburg Hbf"
             },
-            {
-                "from": {
-                    "name": "Berlin-Spandau"
+            "duration": "PT1H57M",
+            "rides": [
+                {
+                    "from": {
+                        "name": "Berlin Hbf"
+                    },
+                    "to": {
+                        "name": "Berlin-Spandau"
+                    },
+                    "duration": "PT8M"
                 },
-                "to": {
-                    "name": "Wittenberge"
+                {
+                    "from": {
+                        "name": "Berlin-Spandau"
+                    },
+                    "to": {
+                        "name": "Wittenberge"
+                    },
+                    "duration": "PT39M"
                 },
-                "duration": "PT39M"
-            },
-            {
-                "from": {
-                    "name": "Wittenberge"
+                {
+                    "from": {
+                        "name": "Wittenberge"
+                    },
+                    "to": {
+                        "name": "Ludwigslust"
+                    },
+                    "duration": "PT16M"
                 },
-                "to": {
-                    "name": "Ludwigslust"
-                },
-                "duration": "PT16M"
-            },
-            {
-                "from": {
-                    "name": "Ludwigslust"
-                },
-                "to": {
-                    "name": "Hamburg Hbf"
-                },
-                "duration": "PT54M"
-            }
-        ]
+                {
+                    "from": {
+                        "name": "Ludwigslust"
+                    },
+                    "to": {
+                        "name": "Hamburg Hbf"
+                    },
+                    "duration": "PT54M"
+                }
+            ]
+        }
     ]
 }
 ```

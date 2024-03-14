@@ -4,6 +4,21 @@ import java.time.Duration
 import java.util.*
 import kotlin.collections.ArrayDeque
 
+typealias Path = List<Ride>
+
+data class State(val city: City, val path: Path, val duration: Duration) {
+    fun addRide(ride: Ride): State {
+        return State(ride.to, path + ride, duration + ride.duration)
+    }
+
+    companion object {
+        fun initialState(city: City): State {
+            return State(city, emptyList(), Duration.ZERO)
+        }
+    }
+}
+
+
 /**
  * A network of cities connected by rides.
  *
@@ -47,18 +62,17 @@ class Network {
      * @return the shortest trip between [from] and [to], or `null` if no path exists
      */
     fun shortestTrip(from: City, to: City): Trip? {
-        data class State(val city: City, val trip: Trip, val duration: Duration)
-
         val shortestDuration = cities.associateWith { Duration.ofSeconds(Long.MAX_VALUE) }.toMutableMap()
         val queue = PriorityQueue<State>(compareBy { it.duration })
 
         shortestDuration[from] = Duration.ZERO
-        queue.add(State(from, emptyList(), Duration.ZERO))
+        queue.add(State.initialState(from))
 
         while (queue.isNotEmpty()) {
-            val (city, path, duration) = queue.remove()
+            val currentState = queue.remove()
+            val (city, path, duration) = currentState
 
-            if (city == to) return path
+            if (city == to) return Trip(from, to, duration, path)
 
             if (duration != shortestDuration[city]) continue
 
@@ -67,7 +81,8 @@ class Network {
 
                 if (newDuration < shortestDuration[it.to]) {
                     shortestDuration[it.to] = newDuration
-                    queue.add(State(it.to, path + it, newDuration))
+                    val newState = currentState.addRide(it)
+                    queue.add(newState)
                 }
             }
         }
@@ -83,23 +98,25 @@ class Network {
      * @return any trip between [from] and [to], or `null` if no path exists
      */
     fun anyTripDFS(from: City, to: City): Trip? {
-        data class State(val city: City, val trip: Trip)
-
         val visited = mutableSetOf<City>()
         val stack = ArrayDeque<State>()
 
-        stack.addLast(State(from, emptyList()))
+        stack.addLast(State.initialState(from))
 
         while (stack.isNotEmpty()) {
-            val (city, path) = stack.removeLast()
+            val currentState = stack.removeLast()
+            val (city, path, duration) = currentState
 
-            if (city == to) return path
+            if (city == to) return Trip(from, to, duration, path)
 
             if (city in visited) continue
 
             visited.add(city)
 
-            ridesFrom(city).forEach { stack.addLast(State(it.to, path + it)) }
+            ridesFrom(city).forEach {
+                val newState = currentState.addRide(it)
+                stack.addLast(newState)
+            }
         }
 
         return null
@@ -115,19 +132,18 @@ class Network {
      * @return sequence of all trips between [from] and [to], or `null` if no path exists
      */
     fun allTrips(from: City, to: City): Sequence<Trip> {
-        data class State(val city: City, val trip: Trip)
-
         val visited = mutableSetOf<City>()
         val stack = ArrayDeque<State>()
 
-        stack.addLast(State(from, emptyList()))
+        stack.addLast(State.initialState(from))
 
         return sequence {
             while (stack.isNotEmpty()) {
-                val (city, path) = stack.removeLast()
+                val currentState = stack.removeLast()
+                val (city, path, duration) = currentState
 
                 if (city == to) {
-                    yield(path)
+                    yield(Trip(from, to, duration, path))
                     continue
                 }
 
@@ -135,7 +151,10 @@ class Network {
 
                 visited.add(city)
 
-                ridesFrom(city).forEach { stack.addLast(State(it.to, path + it)) }
+                ridesFrom(city).forEach {
+                    val newState = currentState.addRide(it)
+                    stack.addLast(newState)
+                }
             }
         }
     }
@@ -148,23 +167,25 @@ class Network {
      * @return any trip between [from] and [to], or `null` if no path exists
      */
     fun anyTripBFS(from: City, to: City): Trip? {
-        data class State(val city: City, val trip: Trip)
-
         val visited = mutableSetOf<City>()
         val queue = ArrayDeque<State>()
 
-        queue.addLast(State(from, emptyList()))
+        queue.addLast(State.initialState(from))
 
         while (queue.isNotEmpty()) {
-            val (city, path) = queue.removeFirst()
+            val currentState = queue.removeFirst()
+            val (city, path, duration) = currentState
 
-            if (city == to) return path
+            if (city == to) return Trip(from, to, duration, path)
 
             if (city in visited) continue
 
             visited.add(city)
 
-            ridesFrom(city).forEach { queue.addLast(State(it.to, path + it)) }
+            ridesFrom(city).forEach {
+                val newState = currentState.addRide(it)
+                queue.addLast(newState)
+            }
         }
 
         return null

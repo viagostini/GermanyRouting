@@ -5,28 +5,8 @@ import java.time.Duration
 /**
  * A trip leading from a start city to an end city.
  *
- * For simplicity, right now it is just an alias for a list of rides.
+ * @property from the starting city
+ * @property to the destination city
+ * @property duration the total duration of the trip
  */
-typealias Trip = List<Ride>
-
-
-fun Trip?.print() {
-    if (this == null) {
-        println("No path found!")
-        return
-    }
-
-    val source = this.first().from.name
-    val rest = this.joinToString(separator = " -> ") { it.to.name }
-    println("$source -> $rest")
-}
-
-
-fun Trip?.totalDuration(): Duration {
-    return listOfNotNull(this?.map { it.duration }).flatten().fold(Duration.ZERO) { acc, duration -> acc + duration }
-}
-
-
-fun emptyTrip(): Trip = emptyList()
-
-
+data class Trip(val from: City, val to: City, val duration: Duration, val rides: List<Ride>)
