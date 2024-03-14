@@ -24,6 +24,9 @@ The API is a Spring Boot Kotlin application that reads the data from the Postgre
 memory. It has a few endpoints to query the network, but currently my focus is not to provide CRUD methods to manage
 the data.
 
+The API endpoints return a JSON with a list of rides that make up the available route. If there is no available route,
+it will return an empty list.
+
 **Example: What is the shortest path between Berlin Hbf and Hamburg Hbf?**
 ```json
 [
@@ -44,6 +47,65 @@ the data.
       "name": "Hamburg Hbf"
     },
     "duration": "PT1H33M"
+  }
+]
+```
+
+**Example: Any path between Berlin Hbf and Hamburg Hbf with DFS algorithm**
+```json
+[
+  {
+    "from": {
+      "name": "Berlin Hbf"
+    },
+    "to": {
+      "name": "Berlin-Spandau"
+    },
+    "duration": "PT8M"
+  },
+  {
+    "from": {
+      "name": "Berlin-Spandau"
+    },
+    "to": {
+      "name": "Wittenberge"
+    },
+    "duration": "PT39M"
+  },
+  {
+    "from": {
+      "name": "Wittenberge"
+    },
+    "to": {
+      "name": "Ludwigslust"
+    },
+    "duration": "PT16M"
+  },
+  {
+    "from": {
+      "name": "Ludwigslust"
+    },
+    "to": {
+      "name": "Hamburg Hbf"
+    },
+    "duration": "PT52M"
+  }
+]
+
+```
+
+**Example: Any path between Berlin Hbf and Hamburg Hbf with BFS algorithm**
+```json
+
+[
+  {
+    "from": {
+      "name": "Berlin Hbf"
+    },
+    "to": {
+      "name": "Hamburg Hbf"
+    },
+    "duration": "PT1H44M"
   }
 ]
 ```
