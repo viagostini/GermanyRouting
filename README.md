@@ -24,88 +24,104 @@ The API is a Spring Boot Kotlin application that reads the data from the Postgre
 memory. It has a few endpoints to query the network, but currently my focus is not to provide CRUD methods to manage
 the data.
 
-The API endpoints return a JSON with a list of rides that make up the available route. If there is no available route,
-it will return an empty list.
+The API endpoints return a JSON with `found` and `path` fields, where the first one is a boolean indicating if a path
+was found, and the second one is an array of objects representing the path. If a path was not found, the `path` field
+will be `null`.
 
-**Example: What is the shortest path between Berlin Hbf and Hamburg Hbf?**
+**Example: Shortest path between Berlin Hbf and Hamburg Hbf with Dijkstra algorithm**
 ```json
-[
-  {
-    "from": {
-      "name": "Berlin Hbf"
-    },
-    "to": {
-      "name": "Berlin-Spandau"
-    },
-    "duration": "PT8M"
-  },
-  {
-    "from": {
-      "name": "Berlin-Spandau"
-    },
-    "to": {
-      "name": "Hamburg Hbf"
-    },
-    "duration": "PT1H33M"
-  }
-]
+// http://localhost:8080/api/routes/shortest?from=Berlin%20Hbf&to=Hamburg%20Hbf
+
+{
+    "found": true,
+    "path": [
+        {
+            "from": {
+                "name": "Berlin Hbf"
+            },
+            "to": {
+                "name": "Berlin-Spandau"
+            },
+            "duration": "PT8M"
+        },
+        {
+            "from": {
+                "name": "Berlin-Spandau"
+            },
+            "to": {
+                "name": "Hamburg Hbf"
+            },
+            "duration": "PT1H33M"
+        }
+    ]
+}
 ```
 
 **Example: Any path between Berlin Hbf and Hamburg Hbf with DFS algorithm**
 ```json
-[
-  {
-    "from": {
-      "name": "Berlin Hbf"
-    },
-    "to": {
-      "name": "Berlin-Spandau"
-    },
-    "duration": "PT8M"
-  },
-  {
-    "from": {
-      "name": "Berlin-Spandau"
-    },
-    "to": {
-      "name": "Wittenberge"
-    },
-    "duration": "PT39M"
-  },
-  {
-    "from": {
-      "name": "Wittenberge"
-    },
-    "to": {
-      "name": "Ludwigslust"
-    },
-    "duration": "PT16M"
-  },
-  {
-    "from": {
-      "name": "Ludwigslust"
-    },
-    "to": {
-      "name": "Hamburg Hbf"
-    },
-    "duration": "PT52M"
-  }
-]
+// http://localhost:8080/api/routes/anyDFS?from=Berlin%20Hbf&to=Hamburg%20Hbf
+
+{
+    "found": true,
+    "path": [
+        {
+            "from": {
+                "name": "Berlin Hbf"
+            },
+            "to": {
+                "name": "Berlin-Spandau"
+            },
+            "duration": "PT8M"
+        },
+        {
+            "from": {
+                "name": "Berlin-Spandau"
+            },
+            "to": {
+                "name": "Wittenberge"
+            },
+            "duration": "PT39M"
+        },
+        {
+            "from": {
+                "name": "Wittenberge"
+            },
+            "to": {
+                "name": "Ludwigslust"
+            },
+            "duration": "PT16M"
+        },
+        {
+            "from": {
+                "name": "Ludwigslust"
+            },
+            "to": {
+                "name": "Hamburg Hbf"
+            },
+            "duration": "PT52M"
+        }
+    ]
+}
 
 ```
 
 **Example: Any path between Berlin Hbf and Hamburg Hbf with BFS algorithm**
 ```json
 
-[
-  {
-    "from": {
-      "name": "Berlin Hbf"
-    },
-    "to": {
-      "name": "Hamburg Hbf"
-    },
-    "duration": "PT1H44M"
-  }
-]
+// http://localhost:8080/api/routes/anyBFS?from=Berlin%20Hbf&to=Hamburg%20Hbf
+
+{
+    "found": true,
+    "path": [
+        {
+            "from": {
+                "name": "Berlin Hbf"
+            },
+            "to": {
+                "name": "Hamburg Hbf"
+            },
+            "duration": "PT1H44M"
+        }
+    ]
+}
 ```
