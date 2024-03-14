@@ -2,9 +2,15 @@ package com.github.viagostini.germany_graph.domain
 
 import java.time.Duration
 
-typealias Path = List<Ride>
+/**
+ * A trip leading from a start city to an end city.
+ *
+ * For simplicity, right now it is just an alias for a list of rides.
+ */
+typealias Trip = List<Ride>
 
-fun Path?.print() {
+
+fun Trip?.print() {
     if (this == null) {
         println("No path found!")
         return
@@ -15,10 +21,12 @@ fun Path?.print() {
     println("$source -> $rest")
 }
 
-fun Path?.totalDuration(): Duration {
+
+fun Trip?.totalDuration(): Duration {
     return listOfNotNull(this?.map { it.duration }).flatten().fold(Duration.ZERO) { acc, duration -> acc + duration }
 }
 
-fun emptyPath(): Path = emptyList()
+
+fun emptyTrip(): Trip = emptyList()
 
 

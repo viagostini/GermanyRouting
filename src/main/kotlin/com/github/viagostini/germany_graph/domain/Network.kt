@@ -4,6 +4,12 @@ import java.time.Duration
 import java.util.*
 import kotlin.collections.ArrayDeque
 
+/**
+ * A network of cities connected by rides.
+ *
+ * This class is a graph where the cities are the nodes and the rides are the edges. We keep an adjacency map to store
+ * the rides departing from each city. We also provide some methods to find paths between cities.
+ */
 class Network {
     private val adjacencyMap = mutableMapOf<City, MutableList<Ride>>()
 
@@ -31,8 +37,17 @@ class Network {
         return adjacencyMap[city] ?: throw CityNotInNetworkException(city.name)
     }
 
-    fun shortestPath(from: City, to: City): Path? {
-        data class State(val city: City, val path: Path, val duration: Duration)
+    /**
+     * Find the shortest trip between two cities using Dijkstra's algorithm.
+     *
+     * Note that this implementation only works because we don't consider the time of the rides.
+     *
+     * @param from the starting city
+     * @param to the destination city
+     * @return the shortest trip between [from] and [to], or `null` if no path exists
+     */
+    fun shortestTrip(from: City, to: City): Trip? {
+        data class State(val city: City, val trip: Trip, val duration: Duration)
 
         val shortestDuration = cities.associateWith { Duration.ofSeconds(Long.MAX_VALUE) }.toMutableMap()
         val queue = PriorityQueue<State>(compareBy { it.duration })
@@ -60,8 +75,15 @@ class Network {
         return null
     }
 
-    fun anyPathDFS(from: City, to: City): Path? {
-        data class State(val city: City, val path: Path)
+    /**
+     * Find any trip between two cities using depth-first search.
+     *
+     * @param from the starting city
+     * @param to the destination city
+     * @return any trip between [from] and [to], or `null` if no path exists
+     */
+    fun anyTripDFS(from: City, to: City): Trip? {
+        data class State(val city: City, val trip: Trip)
 
         val visited = mutableSetOf<City>()
         val stack = ArrayDeque<State>()
@@ -83,8 +105,17 @@ class Network {
         return null
     }
 
-    fun allPaths(from: City, to: City): Sequence<Path> {
-        data class State(val city: City, val path: Path)
+    /**
+     * Find all trips between two cities using depth-first search.
+     *
+     * As the trips are returned as a sequence, the caller can easily choose how many paths to take.
+     *
+     * @param from the starting city
+     * @param to the destination city
+     * @return sequence of all trips between [from] and [to], or `null` if no path exists
+     */
+    fun allPaths(from: City, to: City): Sequence<Trip> {
+        data class State(val city: City, val trip: Trip)
 
         val visited = mutableSetOf<City>()
         val stack = ArrayDeque<State>()
@@ -109,8 +140,15 @@ class Network {
         }
     }
 
-    fun anyPathBFS(from: City, to: City): Path? {
-        data class State(val city: City, val path: Path)
+    /**
+     * Find any trip between two cities using breadth-first search.
+     *
+     * @param from the starting city
+     * @param to the destination city
+     * @return any trip between [from] and [to], or `null` if no path exists
+     */
+    fun anyTripBFS(from: City, to: City): Trip? {
+        data class State(val city: City, val trip: Trip)
 
         val visited = mutableSetOf<City>()
         val queue = ArrayDeque<State>()

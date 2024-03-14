@@ -2,7 +2,6 @@ package com.github.viagostini.germany_graph.web
 
 import com.github.viagostini.germany_graph.Router
 import com.github.viagostini.germany_graph.domain.CityNotInNetworkException
-import com.github.viagostini.germany_graph.domain.Path
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -10,21 +9,21 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/routes")
 class RouteController(private val router: Router) {
     @GetMapping("/shortest")
-    fun findShortestPath(@RequestParam from: String, @RequestParam to: String): PathResponse {
-        val path = router.findShortestPath(from, to)
-        return PathResponse.fromPathOrNull(path)
+    fun findShortestPath(@RequestParam from: String, @RequestParam to: String): TripResponse {
+        val path = router.findShortestTrip(from, to)
+        return TripResponse.fromPathOrNull(path)
     }
 
     @GetMapping("/anyDFS")
-    fun findAnyPath(@RequestParam from: String, @RequestParam to: String): PathResponse {
-        val path = router.findAnyPathDFS(from, to)
-        return PathResponse.fromPathOrNull(path)
+    fun findAnyPath(@RequestParam from: String, @RequestParam to: String): TripResponse {
+        val path = router.findAnyTripDFS(from, to)
+        return TripResponse.fromPathOrNull(path)
     }
 
     @GetMapping("/anyBFS")
-    fun findAnyPathBFS(@RequestParam from: String, @RequestParam to: String): PathResponse {
-        val path = router.findAnyPathBFS(from, to)
-        return PathResponse.fromPathOrNull(path)
+    fun findAnyPathBFS(@RequestParam from: String, @RequestParam to: String): TripResponse {
+        val path = router.findAnyTripBFS(from, to)
+        return TripResponse.fromPathOrNull(path)
     }
 
     @ExceptionHandler(CityNotInNetworkException::class)

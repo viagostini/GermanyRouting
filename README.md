@@ -34,7 +34,7 @@ will be `null`.
 
 {
     "found": true,
-    "path": [
+    "trip": [
         {
             "from": {
                 "name": "Berlin Hbf"
@@ -63,7 +63,7 @@ will be `null`.
 
 {
     "found": true,
-    "path": [
+    "trip": [
         {
             "from": {
                 "name": "Berlin Hbf"
@@ -112,7 +112,7 @@ will be `null`.
 
 {
     "found": true,
-    "path": [
+    "trip": [
         {
             "from": {
                 "name": "Berlin Hbf"

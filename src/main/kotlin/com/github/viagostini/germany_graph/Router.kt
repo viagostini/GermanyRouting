@@ -1,7 +1,7 @@
 package com.github.viagostini.germany_graph
 
 import com.github.viagostini.germany_graph.domain.Network
-import com.github.viagostini.germany_graph.domain.Path
+import com.github.viagostini.germany_graph.domain.Trip
 import com.github.viagostini.germany_graph.persistence.RideRepository
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Service
@@ -16,21 +16,21 @@ class Router(private val rideRepository: RideRepository) {
         network = Network.fromRides(rides)
     }
 
-    fun findShortestPath(from: String, to: String): Path? {
+    fun findShortestTrip(from: String, to: String): Trip? {
         val fromCity = network.getCity(from)
         val toCity = network.getCity(to)
-        return network.shortestPath(fromCity, toCity)
+        return network.shortestTrip(fromCity, toCity)
     }
 
-    fun findAnyPathDFS(from: String, to: String): Path? {
+    fun findAnyTripDFS(from: String, to: String): Trip? {
         val fromCity = network.getCity(from)
         val toCity = network.getCity(to)
-        return network.anyPathDFS(fromCity, toCity)
+        return network.anyTripDFS(fromCity, toCity)
     }
 
-    fun findAnyPathBFS(from: String, to: String): Path? {
+    fun findAnyTripBFS(from: String, to: String): Trip? {
         val fromCity = network.getCity(from)
         val toCity = network.getCity(to)
-        return network.anyPathBFS(fromCity, toCity)
+        return network.anyTripBFS(fromCity, toCity)
     }
 }
