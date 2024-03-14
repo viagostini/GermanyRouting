@@ -72,7 +72,7 @@ class Network {
             val currentState = queue.remove()
             val (city, path, duration) = currentState
 
-            if (city == to) return Trip(from, to, duration, path)
+            if (city == to) return Trip(from, to, path)
 
             if (duration != shortestDuration[city]) continue
 
@@ -107,7 +107,7 @@ class Network {
             val currentState = stack.removeLast()
             val (city, path, duration) = currentState
 
-            if (city == to) return Trip(from, to, duration, path)
+            if (city == to) return Trip(from, to, path)
 
             if (city in visited) continue
 
@@ -143,7 +143,7 @@ class Network {
                 val (city, path, duration) = currentState
 
                 if (city == to) {
-                    yield(Trip(from, to, duration, path))
+                    yield(Trip(from, to, path))
                     continue
                 }
 
@@ -176,7 +176,7 @@ class Network {
             val currentState = queue.removeFirst()
             val (city, path, duration) = currentState
 
-            if (city == to) return Trip(from, to, duration, path)
+            if (city == to) return Trip(from, to, path)
 
             if (city in visited) continue
 
