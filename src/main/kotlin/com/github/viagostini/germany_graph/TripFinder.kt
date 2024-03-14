@@ -5,6 +5,7 @@ import com.github.viagostini.germany_graph.domain.Trip
 import com.github.viagostini.germany_graph.persistence.RideRepository
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Service
+import java.time.Instant
 
 @Service
 class TripFinder(private val rideRepository: RideRepository) {
@@ -16,22 +17,16 @@ class TripFinder(private val rideRepository: RideRepository) {
         network = Network.fromRides(rides)
     }
 
-    fun findShortestTrip(from: String, to: String): Trip? {
+    fun findAnyTripDFS(from: String, to: String, startInstant: Instant): Trip? {
         val fromCity = network.getCity(from)
         val toCity = network.getCity(to)
-        return network.shortestTrip(fromCity, toCity)
+        return network.anyTripDFS(fromCity, toCity, startInstant)
     }
 
-    fun findAnyTripDFS(from: String, to: String): Trip? {
+    fun findAnyTripBFS(from: String, to: String, startInstant: Instant): Trip? {
         val fromCity = network.getCity(from)
         val toCity = network.getCity(to)
-        return network.anyTripDFS(fromCity, toCity)
-    }
-
-    fun findAnyTripBFS(from: String, to: String): Trip? {
-        val fromCity = network.getCity(from)
-        val toCity = network.getCity(to)
-        return network.anyTripBFS(fromCity, toCity)
+        return network.anyTripBFS(fromCity, toCity, startInstant)
     }
 
     /**
@@ -48,10 +43,10 @@ class TripFinder(private val rideRepository: RideRepository) {
      * @param to the destination city
      * @return all trips from the starting city to the destination city following the quality criteria
      */
-    fun findAllTrips(from: String, to: String): List<Trip> {
+    fun findAllTrips(from: String, to: String, startInstant: Instant): List<Trip> {
         val fromCity = network.getCity(from)
         val toCity = network.getCity(to)
-        val trips = network.allTrips(fromCity, toCity).toList()
+        val trips = network.allTrips(fromCity, toCity, startInstant).toList()
 
         val shortestDuration = trips.minOf { it.duration }
 
