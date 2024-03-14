@@ -32,7 +32,7 @@ class TripController(private val tripFinder: TripFinder) {
         @RequestParam to: String,
         @RequestParam(required = false) limit: Int = 10,
     ): AllTripsResponse {
-        val trips = tripFinder.findAllTrips(from, to).take(limit).toList()
+        val trips = tripFinder.findAllTrips(from, to).take(limit)
         return AllTripsResponse.fromTripsOrNull(trips)
     }
 

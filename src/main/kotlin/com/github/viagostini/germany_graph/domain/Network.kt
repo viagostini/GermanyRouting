@@ -15,6 +15,7 @@ data class State(val city: City, val path: Path, val duration: Duration) {
         fun initialState(city: City): State {
             return State(city, emptyList(), Duration.ZERO)
         }
+
     }
 }
 
@@ -31,6 +32,9 @@ class Network {
     private val cities: Set<City>
         get() = adjacencyMap.keys
 
+    private val rides: List<Ride>
+        get() = adjacencyMap.values.flatten()
+
     fun addCity(city: City) {
         adjacencyMap.putIfAbsent(city, mutableListOf())
     }
@@ -46,6 +50,12 @@ class Network {
         if (to !in adjacencyMap) throw CityNotInNetworkException(to.name)
 
         adjacencyMap[from]!!.add(ride)
+
+        // we want to keep only the shortest ride between two cities
+        val existingRides = adjacencyMap[from]!!.filter { it.to == to }
+        val shortestDuration = existingRides.minOf { it.duration }
+
+        adjacencyMap[from]!!.removeIf { it.to == to && it.duration > shortestDuration }
     }
 
     private fun ridesFrom(city: City): List<Ride> {
@@ -125,38 +135,36 @@ class Network {
     /**
      * Find all trips between two cities using depth-first search.
      *
-     * As the trips are returned as a sequence, the caller can easily choose how many paths to take.
+     * As there can be exponentially many paths between two cities, we use a cutoff to limit the depth of the search.
+     * Not the most useful method in practice, but it's a good exercise to understand it. May be deleted in the future.
      *
      * @param from the starting city
      * @param to the destination city
-     * @return sequence of all trips between [from] and [to], or `null` if no path exists
+     * @return list of all trips between [from] and [to], or `null` if no path exists
      */
-    fun allTrips(from: City, to: City): Sequence<Trip> {
+    fun allTrips(from: City, to: City, cutoff: Int = 3): List<Trip> {
         val visited = mutableSetOf<City>()
-        val stack = ArrayDeque<State>()
+        val path = ArrayDeque<Ride>()
+        val paths = mutableListOf<Trip>()
 
-        stack.addLast(State.initialState(from))
+        visited.add(from)
 
-        return sequence {
-            while (stack.isNotEmpty()) {
-                val currentState = stack.removeLast()
-                val (city, path, duration) = currentState
+        fun dfs(from: City, to: City, ride: Ride) {
+            visited.add(from)
+            path.addLast(ride)
 
-                if (city == to) {
-                    yield(Trip(from, to, path))
-                    continue
-                }
-
-                if (city in visited) continue
-
-                visited.add(city)
-
-                ridesFrom(city).forEach {
-                    val newState = currentState.addRide(it)
-                    stack.addLast(newState)
-                }
+            if (from == to) {
+                paths.add(Trip(from, to, path.toList()))
+            } else {
+                ridesFrom(from).forEach { if (it.to !in visited && path.size < cutoff) dfs(it.to, to, it) }
             }
+
+            path.removeLast()
+            visited.remove(from)
         }
+
+        ridesFrom(from).forEach { dfs(it.to, to, it) }
+        return paths
     }
 
     /**
@@ -205,6 +213,7 @@ class Network {
                 network.addRide(it)
             }
 
+            println("Size of network: ${network.cities.size} cities and ${network.rides.size} rides.")
             return network
         }
     }

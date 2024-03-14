@@ -34,10 +34,29 @@ class TripFinder(private val rideRepository: RideRepository) {
         return network.anyTripBFS(fromCity, toCity)
     }
 
-    fun findAllTrips(from: String, to: String): Sequence<Trip> {
+    /**
+     * Find all trips from one city to another.
+     *
+     * Since we don't have any guarantees about getting the shortest or best trip in any way, we will take a performance
+     * hit here and generate all trips, and then we do some post-processing to filter out trips that are not as good.
+     * For now, that means deleting all trips that are twice as long as the shortest route or longer.
+     *
+     * As a convenience, we will also sort the trips by duration before returning.
+     * Note that we could also do some smarter selection of trips here, but we will keep it simple for now.
+     *
+     * @param from the starting city
+     * @param to the destination city
+     * @return all trips from the starting city to the destination city following the quality criteria
+     */
+    fun findAllTrips(from: String, to: String): List<Trip> {
         val fromCity = network.getCity(from)
         val toCity = network.getCity(to)
+        val trips = network.allTrips(fromCity, toCity).toList()
 
-       return network.allTrips(fromCity, toCity)
+        val shortestDuration = trips.minOf { it.duration }
+
+        return trips
+            .filter { it.duration <= shortestDuration + shortestDuration }
+            .sortedWith(compareBy(Trip::duration, Trip::size))
     }
 }
