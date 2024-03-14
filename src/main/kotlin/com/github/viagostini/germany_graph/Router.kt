@@ -13,7 +13,7 @@ class Router(private val rideRepository: RideRepository) {
 
     @PostConstruct
     fun init() {
-        val rides = rideRepository.findAll().map { it.toRide() }.filter { it.from.name == "Berlin Hbf" }
+        val rides = rideRepository.findAll().map { it.toRide() }
         network = Network.fromRides(rides)
     }
 
