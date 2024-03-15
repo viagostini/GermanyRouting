@@ -11,7 +11,7 @@ import java.time.Instant
 class TripController(private val tripFinder: TripFinder) {
     @GetMapping("/anyDFS")
     fun findAnyTrip(@RequestParam from: String, @RequestParam to: String): TripResponse {
-        val startInstant = Instant.parse("2024-02-18T00:00:00Z")
+        val startInstant = Instant.parse("2024-02-22T00:00:00Z")
         val path = tripFinder.findAnyTripDFS(from, to, startInstant)
         return TripResponse.fromTripOrNull(path)
     }
@@ -30,7 +30,7 @@ class TripController(private val tripFinder: TripFinder) {
         @RequestParam(required = false) limit: Int = 10,
         @RequestParam(required = false) cutoff: Int = 3,
     ): AllTripsResponse {
-        val startInstant = Instant.parse("2024-02-18T00:00:00Z")
+        val startInstant = Instant.parse("2024-02-20T00:00:00Z")
         val trips = tripFinder.findAllTrips(from, to, startInstant, cutoff).take(limit).toList()
         return AllTripsResponse.fromTripsOrNull(trips)
     }

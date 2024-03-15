@@ -111,11 +111,11 @@ class Network {
         val visited = mutableSetOf<City>()
         val path = ArrayDeque<Ride>()
 
-        fun dfs(from: City, ride: Ride, now: Instant): Sequence<Trip> {
+        fun dfs(from: City, ride: Ride, instant: Instant): Sequence<Trip> {
             return sequence {
                 visited.add(from)
                 path.addLast(ride)
-                val time = if (path.size == 1) ride.arrivalTime else now + ride.duration
+                val now = instant + ride.duration
 
                 if (from == destination) {
                     yield(Trip(start, destination, path.toList()))
@@ -123,11 +123,12 @@ class Network {
                     ridesFrom(from)
                         .filter {
                             it.to !in visited &&
-                                    it.departureTime >= time &&
-                                    it.departureTime < time.plus(Duration.ofHours(5))
+                                    it.departureTime >= now &&
+                                    it.departureTime < now.plus(Duration.ofHours(1)) &&
+                                    it.duration < Duration.ofHours(20) // remove some outliers
                         }
                         .sortedBy { it.to.distanceTo(destination) }
-                        .forEach { if (path.size < cutoff) yieldAll(dfs(it.to, it, time)) }
+                        .forEach { if (path.size < cutoff) yieldAll(dfs(it.to, it, now)) }
                 }
 
                 path.removeLast()
@@ -135,7 +136,10 @@ class Network {
             }
         }
 
-        return ridesFrom(start).asSequence().flatMap { dfs(it.to, it, startInstant) }
+        return ridesFrom(start)
+            .asSequence()
+            .filter { it.departureTime >= startInstant }
+            .flatMap { dfs(it.to, it, startInstant) }
     }
 
     /**
