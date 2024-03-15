@@ -5,6 +5,8 @@ import com.github.viagostini.germany_graph.domain.CityNotInNetworkException
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 @RestController
 @RequestMapping("/api/trips")
@@ -27,10 +29,11 @@ class TripController(private val tripFinder: TripFinder) {
     fun findAllTrips(
         @RequestParam from: String,
         @RequestParam to: String,
+        @RequestParam startDay: LocalDate,
         @RequestParam(required = false) limit: Int = 10,
         @RequestParam(required = false) cutoff: Int = 3,
     ): AllTripsResponse {
-        val startInstant = Instant.parse("2024-02-20T00:00:00Z")
+        val startInstant = startDay.atStartOfDay().toInstant(ZoneOffset.UTC)
         val trips = tripFinder.findAllTrips(from, to, startInstant, cutoff).take(limit).toList()
         return AllTripsResponse.fromTripsOrNull(trips)
     }

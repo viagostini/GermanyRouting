@@ -138,7 +138,7 @@ class Network {
 
         return ridesFrom(start)
             .asSequence()
-            .filter { it.departureTime >= startInstant && it.duration < Duration.ofHours(20) }
+            .filter { it.departureTime >= startInstant && it.departureTime < startInstant.plus(Duration.ofDays(1)) && it.duration < Duration.ofHours(20) }
             .flatMap { dfs(it.to, it, startInstant) }
     }
 
