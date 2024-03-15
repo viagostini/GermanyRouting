@@ -21,5 +21,6 @@ data class Ride(
     val to: City,
     val duration: Duration,
     val departureTime: Instant,
-    val arrivalTime: Instant
+    val arrivalTime: Instant,
+    val lineId: String,
 )

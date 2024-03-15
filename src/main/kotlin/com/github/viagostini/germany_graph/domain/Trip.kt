@@ -14,4 +14,6 @@ import java.time.Duration
 data class Trip(val from: City, val to: City, val rides: List<Ride>) {
     val size = rides.size
     val duration: Duration = rides.fold(Duration.ZERO) { sum, ride -> sum + ride.duration }
+    val numberOfLineTransfers =
+        rides.fold(0) { transfers, ride -> transfers + if (ride.lineId != rides.first().lineId) 1 else 0 }
 }
