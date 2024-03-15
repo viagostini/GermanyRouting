@@ -28,9 +28,10 @@ class TripController(private val tripFinder: TripFinder) {
         @RequestParam from: String,
         @RequestParam to: String,
         @RequestParam(required = false) limit: Int = 10,
+        @RequestParam(required = false) cutoff: Int = 3,
     ): AllTripsResponse {
         val startInstant = Instant.parse("2024-02-18T00:00:00Z")
-        val trips = tripFinder.findAllTrips(from, to, startInstant).take(limit)
+        val trips = tripFinder.findAllTrips(from, to, startInstant, cutoff).take(limit).toList()
         return AllTripsResponse.fromTripsOrNull(trips)
     }
 

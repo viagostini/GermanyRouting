@@ -17,10 +17,14 @@ data class RideEntity(
     @Column(name = "duration") val duration: Long,
     @Column(name = "departure_time") val departureTime: Instant,
     @Column(name = "arrival_time") val arrivalTime: Instant,
+    @Column(name = "start_stop_lat") val fromLat: Double,
+    @Column(name = "start_stop_lon") val fromLon: Double,
+    @Column(name = "end_stop_lat") val toLat: Double,
+    @Column(name = "end_stop_lon") val toLon: Double
 ) {
     fun toRide(): Ride {
-        val from = City(from)
-        val to = City(to)
+        val from = City(from, fromLat, fromLon)
+        val to = City(to, toLat, toLon)
         return Ride(from, to, Duration.ofSeconds(duration), departureTime, arrivalTime)
     }
 }

@@ -94,38 +94,48 @@ class Network {
      * Find all trips between two cities using depth-first search.
      *
      * As there can be exponentially many paths between two cities, we use a cutoff to limit the depth of the search.
-     * Not the most useful method in practice, but it's a good exercise to understand it. May be deleted in the future.
+     * This method is probably too slow currently to be really useful in practice, but it is a good exercise.
+     *
+     * The distance from the current city to the destination is used as a heuristic to guide the search. This improves
+     * both the performance and the quality of the results, usually reducing the total travel time. Note that the trips
+     * found may not be the optimal ones even with the heuristic.
      *
      * @param start the starting city
      * @param destination the destination city
+     * @param startInstant the time when the search starts
+     * @param cutoff the maximum number of rides in the trip
+     *
      * @return list of all trips between [start] and [destination], or `null` if no path exists
      */
-    fun allTrips(start: City, destination: City, startInstant: Instant, cutoff: Int = 3): List<Trip> {
+    fun allTrips(start: City, destination: City, startInstant: Instant, cutoff: Int): Sequence<Trip> {
         val visited = mutableSetOf<City>()
         val path = ArrayDeque<Ride>()
-        val paths = mutableListOf<Trip>()
 
-        visited.add(start)
+        fun dfs(from: City, ride: Ride, now: Instant): Sequence<Trip> {
+            return sequence {
+                visited.add(from)
+                path.addLast(ride)
+                val time = if (path.size == 1) ride.arrivalTime else now + ride.duration
 
-        fun dfs(from: City, ride: Ride) {
-            visited.add(from)
-            path.addLast(ride)
+                if (from == destination) {
+                    yield(Trip(start, destination, path.toList()))
+                } else {
+                    ridesFrom(from)
+                        .filter {
+                            it.to !in visited &&
+                                    it.departureTime >= time &&
+                                    it.departureTime < time.plus(Duration.ofHours(5))
+                        }
+                        .sortedBy { it.to.distanceTo(destination) }
+                        .forEach { if (path.size < cutoff) yieldAll(dfs(it.to, it, time)) }
+                }
 
-            if (from == destination) {
-                paths.add(Trip(start, destination, path.toList()))
-            } else {
-                ridesFrom(from)
-                    .filter { it.to !in visited }
-                    .filter { it.departureTime >= ride.arrivalTime }
-                    .forEach { if (path.size < cutoff) dfs(it.to, it) }
+                path.removeLast()
+                visited.remove(from)
             }
-
-            path.removeLast()
-            visited.remove(from)
         }
 
-        ridesFrom(start).forEach { dfs(it.to, it) }
-        return paths
+        return ridesFrom(start).asSequence().flatMap { dfs(it.to, it, startInstant) }
     }
 
     /**
