@@ -23,4 +23,8 @@ data class Ride(
     val departureTime: Instant,
     val arrivalTime: Instant,
     val lineId: String,
-)
+) {
+//    override fun toString(): String {
+//        return "$from -> $to"
+//    }
+}

@@ -45,20 +45,24 @@ class Network {
     fun addRide(ride: Ride) {
         val (from, to) = ride
 
-        if (from !in adjacencyMap) throw CityNotInNetworkException(from.name)
-        if (to !in adjacencyMap) throw CityNotInNetworkException(to.name)
+        if (from !in adjacencyMap) addCity(from)
+        if (to !in adjacencyMap) addCity(to)
 
         adjacencyMap[from]!!.add(ride)
     }
 
-    private fun ridesFrom(city: City): List<Ride> {
+    fun ridesFrom(city: City): List<Ride> {
         return adjacencyMap[city] ?: throw CityNotInNetworkException(city.name)
     }
 
     /**
      * Find all trips between two cities using depth-first search.
      *
-     * As there can be exponentially many paths between two cities, we use a cutoff to limit the depth of the search.
+     * As there can be exponentially many paths between two cities, we must prune our search according to some criteria.
+     * The following criteria are currently used:
+     *     - The depth of a trip has a maximum value, given by the [maxDepth] parameter.
+     *     - The distance of a trip should be not be greater than [maxDistanceFactor] * Haversine(start, distance)
+     *
      * This method is probably too slow currently to be really useful in practice, but it is a good exercise.
      *
      * The distance from the current city to the destination is used as a heuristic to guide the search. This improves
@@ -68,13 +72,15 @@ class Network {
      * @param start the starting city
      * @param destination the destination city
      * @param startInstant the time when the search starts
-     * @param cutoff the maximum number of rides in the trip
+     * @param maxDepth the maximum number of rides in the trip
      *
      * @return list of all trips between [start] and [destination], or `null` if no path exists
      */
-    fun allTrips(start: City, destination: City, startInstant: Instant, cutoff: Int): Sequence<Trip> {
+    fun allTripsOld(start: City, destination: City, startInstant: Instant, maxDepth: Int): Sequence<Trip> {
         val visited = mutableSetOf<City>()
         val path = ArrayDeque<Ride>()
+
+        visited.add(start)
 
         fun dfs(from: City, ride: Ride, instant: Instant): Sequence<Trip> {
             return sequence {
@@ -89,11 +95,14 @@ class Network {
                         .filter {
                             it.to !in visited &&
                                     it.departureTime >= now &&
-                                    it.departureTime < now.plus(Duration.ofHours(1)) &&
+                                    it.departureTime < now.plus(Duration.ofHours(5)) &&
+                                    start.distanceTo(it.to) + it.to.distanceTo(destination) < 2 * start.distanceTo(
+                                destination
+                            ) &&
                                     it.duration < Duration.ofHours(20) // remove some outliers
                         }
                         .sortedBy { it.to.distanceTo(destination) }
-                        .forEach { if (path.size < cutoff) yieldAll(dfs(it.to, it, now)) }
+                        .forEach { if (path.size < maxDepth) yieldAll(dfs(it.to, it, now)) }
                 }
 
                 path.removeLast()
@@ -103,8 +112,78 @@ class Network {
 
         return ridesFrom(start)
             .asSequence()
-            .filter { it.departureTime >= startInstant && it.departureTime < startInstant.plus(Duration.ofDays(1)) && it.duration < Duration.ofHours(20) }
-            .flatMap { dfs(it.to, it, startInstant) }
+            .filter {
+                it.departureTime >= startInstant &&
+                        it.departureTime < startInstant.plus(Duration.ofDays(1)) &&
+                        it.duration < Duration.ofHours(20)
+            }
+            .flatMap { dfs(it.to, it, it.departureTime) }
+    }
+
+    fun allTrips(start: City, destination: City, startInstant: Instant, maxDepth: Int): Sequence<Trip> {
+        val visited = mutableSetOf<City>()
+        val path = ArrayDeque<Ride>()
+
+        visited.add(start)
+
+        fun dfs(from: City, ride: Ride, instant: Instant): Sequence<Trip> {
+            return sequence {
+                visited.add(from)
+                path.addLast(ride)
+                val now = instant + ride.duration
+
+                fun allowedRide(ride: Ride): Boolean {
+                    if (ride.to in visited) return false
+                    if (ride.departureTime < now) return false
+                    if (ride.departureTime > now.plus(Duration.ofHours(5))) return false
+
+                    return true
+                }
+
+                if (from == destination) {
+                    yield(Trip(start, destination, path.toList()))
+                } else {
+                    ridesFrom(from)
+                        .filter { allowedRide(it) }
+                        .sortedBy { it.to.distanceTo(destination) }
+                        .forEach { if (path.size < maxDepth) yieldAll(dfs(it.to, it, now)) }
+                }
+
+                path.removeLast()
+                visited.remove(from)
+            }
+        }
+
+        return ridesFrom(start)
+            .asSequence()
+            .filter { it.departureTime >= startInstant && it.departureTime < startInstant.plus(Duration.ofDays(1)) }
+            .flatMap { dfs(it.to, it, it.departureTime) }
+    }
+
+
+    fun allTripsNew(start: City, destination: City, startInstant: Instant, maxDepth: Int): Sequence<Trip> {
+        val visited = mutableSetOf<City>()
+        val path = ArrayDeque<Ride>()
+
+        fun dfs(ride: Ride): Sequence<Trip> = sequence {
+            if (ride.to == destination) {
+                yield(Trip(start, destination, path.toList()))
+                return@sequence
+            }
+
+            visited.add(ride.to)
+            ridesFrom(ride.to)
+                .filter { it.to !in visited }
+                .forEach {
+                    path.addLast(it)
+                    yieldAll(dfs(it))
+                    path.removeLast()
+                }
+            visited.remove(ride.to)
+        }
+
+        val sentinelRide = Ride(start, start, Duration.ZERO, startInstant, startInstant, "Sentinel")
+        return dfs(sentinelRide)
     }
 
     override fun toString(): String {
