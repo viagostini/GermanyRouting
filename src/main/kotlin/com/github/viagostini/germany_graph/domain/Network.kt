@@ -164,6 +164,8 @@ class Network {
     fun allTripsNew(start: City, destination: City, startInstant: Instant, maxDepth: Int): Sequence<Trip> {
         val visited = mutableSetOf<City>()
         val path = ArrayDeque<Ride>()
+
+        val maxDistance = 2.0 * start.distanceTo(destination)
         val departureWindow = Duration.ofHours(5)
         val lastInstantForFirstRide = startInstant.plus(Duration.ofDays(1))
 
@@ -173,6 +175,21 @@ class Network {
         fun rideIsWithinDepartureWindow(ride: Ride, instant: Instant): Boolean =
             ride.departureTime >= instant && ride.departureTime < instant.plus(departureWindow)
 
+        fun isDestinationWithinRange(ride: Ride): Boolean =
+            start.distanceTo(ride.to) + ride.to.distanceTo(destination) < maxDistance
+
+        fun allowedRide(ride: Ride, previousRide: Ride): Boolean {
+            val isFirstRide = path.isEmpty()
+
+            val isDepartureWithinRange =
+                if (isFirstRide)
+                    rideIsWithinStartDay(ride)
+                else
+                    rideIsWithinDepartureWindow(ride, previousRide.arrivalTime)
+
+            return ride.to !in visited && isDepartureWithinRange && isDestinationWithinRange(ride)
+        }
+
         fun dfs(ride: Ride): Sequence<Trip> = sequence {
             if (ride.to == destination) {
                 yield(Trip(start, destination, path.toList()))
@@ -181,14 +198,7 @@ class Network {
 
             visited.add(ride.to)
             ridesFrom(ride.to)
-                .filter {
-                    val isFirstRide = path.isEmpty()
-
-                    val isDepartureWithinRange =
-                        if (isFirstRide) rideIsWithinStartDay(it) else rideIsWithinDepartureWindow(it, ride.arrivalTime)
-
-                    it.to !in visited && isDepartureWithinRange
-                }
+                .filter { allowedRide(it, ride) }
                 .sortedBy { it.to.distanceTo(destination) }
                 .forEach {
                     path.addLast(it)

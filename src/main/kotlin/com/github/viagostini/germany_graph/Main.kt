@@ -101,6 +101,40 @@ fun main() {
         )
         network.addRide(ride)
 
+        // ICE100 - Berlin -> Prague -> Warsaw -> Hannover (long absurd route)
+        val prague = City("Prague", 50.0755, 14.4378)
+        val warsaw = City("Warsaw", 52.2297, 21.0122)
+
+        ride = Ride(
+            berlin,
+            prague,
+            Duration.ofHours(4),
+            Instant.parse("2024-01-01T08:00:00Z").plus(Duration.ofDays(i * 2)),
+            Instant.parse("2024-01-01T12:00:00Z").plus(Duration.ofDays(i * 2)),
+            "ICE100",
+        )
+        network.addRide(ride)
+
+        ride = Ride(
+            prague,
+            warsaw,
+            Duration.ofHours(4),
+            Instant.parse("2024-01-01T12:00:00Z").plus(Duration.ofDays(i * 2)),
+            Instant.parse("2024-01-01T16:00:00Z").plus(Duration.ofDays(i * 2)),
+            "ICE100",
+        )
+        network.addRide(ride)
+
+        ride = Ride(
+            warsaw,
+            hannover,
+            Duration.ofHours(10),
+            Instant.parse("2024-01-01T16:00:00Z").plus(Duration.ofDays(i * 2)),
+            Instant.parse("2024-01-02T02:00:00Z").plus(Duration.ofDays(i * 2)),
+            "ICE100",
+        )
+        network.addRide(ride)
+
     }
 
     // Find all trips from Berlin to Hannover
