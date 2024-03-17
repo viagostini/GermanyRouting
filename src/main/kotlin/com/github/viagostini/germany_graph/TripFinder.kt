@@ -17,18 +17,6 @@ class TripFinder(private val rideRepository: RideRepository) {
         network = Network.fromRides(rides)
     }
 
-    fun findAnyTripDFS(from: String, to: String, startInstant: Instant): Trip? {
-        val fromCity = network.getCity(from)
-        val toCity = network.getCity(to)
-        return network.anyTripDFS(fromCity, toCity, startInstant)
-    }
-
-    fun findAnyTripBFS(from: String, to: String, startInstant: Instant): Trip? {
-        val fromCity = network.getCity(from)
-        val toCity = network.getCity(to)
-        return network.anyTripBFS(fromCity, toCity, startInstant)
-    }
-
     /**
      * Find all trips from one city to another starting at a given instant.
      *

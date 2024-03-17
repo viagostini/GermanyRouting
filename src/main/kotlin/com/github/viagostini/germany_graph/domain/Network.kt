@@ -56,41 +56,6 @@ class Network {
     }
 
     /**
-     * Find any trip between two cities using depth-first search.
-     *
-     * During the search, we make sure we only follow rides that we can take based on current time.
-     *
-     * @param from the starting city
-     * @param to the destination city
-     * @return any trip between [from] and [to], or `null` if no path exists
-     */
-    fun anyTripDFS(from: City, to: City, startInstant: Instant): Trip? {
-        val visited = mutableSetOf<City>()
-        val stack = ArrayDeque<State>()
-
-        stack.addLast(State.initialState(from, startInstant))
-
-        while (stack.isNotEmpty()) {
-            val currentState = stack.removeLast()
-            val (city, path, now, duration) = currentState
-
-            if (city == to) return Trip(from, to, path)
-
-            visited.add(city)
-
-            ridesFrom(city)
-                .filter { it.to !in visited }
-                .filter { it.departureTime >= now }
-                .forEach {
-                    val newState = currentState.addRide(it)
-                    stack.addLast(newState)
-                }
-        }
-
-        return null
-    }
-
-    /**
      * Find all trips between two cities using depth-first search.
      *
      * As there can be exponentially many paths between two cities, we use a cutoff to limit the depth of the search.
@@ -140,39 +105,6 @@ class Network {
             .asSequence()
             .filter { it.departureTime >= startInstant && it.departureTime < startInstant.plus(Duration.ofDays(1)) && it.duration < Duration.ofHours(20) }
             .flatMap { dfs(it.to, it, startInstant) }
-    }
-
-    /**
-     * Find any trip between two cities using breadth-first search.
-     *
-     * @param from the starting city
-     * @param to the destination city
-     * @return any trip between [from] and [to], or `null` if no path exists
-     */
-    fun anyTripBFS(from: City, to: City, startInstant: Instant): Trip? {
-        val visited = mutableSetOf<City>()
-        val queue = ArrayDeque<State>()
-
-        queue.addLast(State.initialState(from, startInstant))
-
-        while (queue.isNotEmpty()) {
-            val currentState = queue.removeFirst()
-            val (city, path, now, duration) = currentState
-
-            if (city == to) return Trip(from, to, path)
-
-            visited.add(city)
-
-            ridesFrom(city)
-                .filter { it.to !in visited }
-                .filter { it.departureTime >= now }
-                .forEach {
-                    val newState = currentState.addRide(it)
-                    queue.addLast(newState)
-                }
-        }
-
-        return null
     }
 
     override fun toString(): String {
