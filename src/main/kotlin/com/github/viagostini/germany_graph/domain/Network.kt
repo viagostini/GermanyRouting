@@ -189,6 +189,7 @@ class Network {
 
                     it.to !in visited && isDepartureWithinRange
                 }
+                .sortedBy { it.to.distanceTo(destination) }
                 .forEach {
                     path.addLast(it)
                     yieldAll(dfs(it))
