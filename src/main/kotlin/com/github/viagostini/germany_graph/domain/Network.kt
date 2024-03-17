@@ -164,6 +164,14 @@ class Network {
     fun allTripsNew(start: City, destination: City, startInstant: Instant, maxDepth: Int): Sequence<Trip> {
         val visited = mutableSetOf<City>()
         val path = ArrayDeque<Ride>()
+        val departureWindow = Duration.ofHours(5)
+        val lastInstantForFirstRide = startInstant.plus(Duration.ofDays(1))
+
+        fun rideIsWithinStartDay(ride: Ride): Boolean =
+            ride.departureTime >= startInstant && ride.departureTime < lastInstantForFirstRide
+
+        fun rideIsWithinDepartureWindow(ride: Ride, instant: Instant): Boolean =
+            ride.departureTime >= instant && ride.departureTime < instant.plus(departureWindow)
 
         fun dfs(ride: Ride): Sequence<Trip> = sequence {
             if (ride.to == destination) {
@@ -173,7 +181,14 @@ class Network {
 
             visited.add(ride.to)
             ridesFrom(ride.to)
-                .filter { it.to !in visited }
+                .filter {
+                    val isFirstRide = path.isEmpty()
+
+                    val isDepartureWithinRange =
+                        if (isFirstRide) rideIsWithinStartDay(it) else rideIsWithinDepartureWindow(it, ride.arrivalTime)
+
+                    it.to !in visited && isDepartureWithinRange
+                }
                 .forEach {
                     path.addLast(it)
                     yieldAll(dfs(it))
