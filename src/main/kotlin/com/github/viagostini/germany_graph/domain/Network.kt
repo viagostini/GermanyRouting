@@ -2,6 +2,8 @@ package com.github.viagostini.germany_graph.domain
 
 import java.time.Duration
 import java.time.Instant
+import java.util.*
+import kotlin.collections.ArrayDeque
 
 typealias Path = List<Ride>
 
@@ -26,7 +28,17 @@ data class State(val city: City, val path: Path, val now: Instant, val duration:
  * the rides departing from each city. We also provide some methods to find paths between cities.
  */
 class Network {
-    private val adjacencyMap = mutableMapOf<City, MutableList<Ride>>()
+    private fun emptySortedRideSet(): SortedSet<Ride> {
+        return TreeSet<Ride> { a, b ->
+            val timeComparison = a.departureTime.compareTo(b.departureTime)
+            val fromComparison = a.from.name.compareTo(b.from.name)
+            val toComparison = a.to.name.compareTo(b.to.name)
+
+            if (timeComparison != 0) timeComparison else if (fromComparison != 0) fromComparison else toComparison
+        }
+    }
+
+    private val adjacencyMap = mutableMapOf<City, SortedSet<Ride>>()
 
     private val cities: Set<City>
         get() = adjacencyMap.keys
@@ -35,7 +47,7 @@ class Network {
         get() = adjacencyMap.values.flatten()
 
     fun addCity(city: City) {
-        adjacencyMap.putIfAbsent(city, mutableListOf())
+        adjacencyMap.putIfAbsent(city, emptySortedRideSet())
     }
 
     fun getCity(name: String): City {
@@ -51,8 +63,16 @@ class Network {
         adjacencyMap[from]!!.add(ride)
     }
 
-    fun ridesFrom(city: City): List<Ride> {
+    fun ridesFrom(city: City): Set<Ride> {
         return adjacencyMap[city] ?: throw CityNotInNetworkException(city.name)
+    }
+
+    fun ridesFromWithin(city: City, startInstant: Instant, endInstant: Instant): Set<Ride> {
+        val fakeRideStart = Ride(city, city, Duration.ZERO, startInstant, startInstant, "Fake")
+        val fakeRideEnd = Ride(city, city, Duration.ZERO, endInstant, endInstant, "Fake")
+
+        val subsetRides = adjacencyMap[city]?.subSet(fakeRideStart, fakeRideEnd)
+        return adjacencyMap[city]?.subSet(fakeRideStart, fakeRideEnd) ?: throw CityNotInNetworkException(city.name)
     }
 
     /**
@@ -169,26 +189,8 @@ class Network {
         val departureWindow = Duration.ofHours(5)
         val lastInstantForFirstRide = startInstant.plus(Duration.ofDays(1))
 
-        fun rideIsWithinStartDay(ride: Ride): Boolean =
-            ride.departureTime >= startInstant && ride.departureTime < lastInstantForFirstRide
-
-        fun rideIsWithinDepartureWindow(ride: Ride, instant: Instant): Boolean =
-            ride.departureTime >= instant && ride.departureTime < instant.plus(departureWindow)
-
         fun isDestinationWithinRange(ride: Ride): Boolean =
             start.distanceTo(ride.to) + ride.to.distanceTo(destination) < maxDistance
-
-        fun allowedRide(ride: Ride, previousRide: Ride): Boolean {
-            val isFirstRide = path.isEmpty()
-
-            val isDepartureWithinRange =
-                if (isFirstRide)
-                    rideIsWithinStartDay(ride)
-                else
-                    rideIsWithinDepartureWindow(ride, previousRide.arrivalTime)
-
-            return ride.to !in visited && isDepartureWithinRange && isDestinationWithinRange(ride)
-        }
 
         fun dfs(ride: Ride): Sequence<Trip> = sequence {
             if (ride.to == destination) {
@@ -197,8 +199,13 @@ class Network {
             }
 
             visited.add(ride.to)
-            ridesFrom(ride.to)
-                .filter { allowedRide(it, ride) }
+
+            val nextRides =
+                if (path.isEmpty()) ridesFromWithin(ride.to, startInstant, lastInstantForFirstRide)
+                else ridesFromWithin(ride.to, ride.arrivalTime, ride.arrivalTime.plus(departureWindow))
+
+           nextRides
+                .filter { it.to !in visited && isDestinationWithinRange(it) }
                 .sortedBy { it.to.distanceTo(destination) }
                 .forEach {
                     path.addLast(it)

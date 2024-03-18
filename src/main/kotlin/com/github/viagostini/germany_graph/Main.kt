@@ -5,6 +5,7 @@ import com.github.viagostini.germany_graph.domain.Network
 import com.github.viagostini.germany_graph.domain.Ride
 import java.time.Duration
 import java.time.Instant
+import kotlin.system.measureTimeMillis
 
 fun main() {
     val network = Network()
@@ -140,14 +141,19 @@ fun main() {
     // Find all trips from Berlin to Hannover
     val berlin = network.getCity("Berlin")
     val hannover = network.getCity("Hannover")
+    val prague = network.getCity("Prague")
+    val warsaw = network.getCity("Warsaw")
 
     println("===============================================")
-    network.allTripsNew(berlin, hannover, Instant.parse("2024-01-01T00:00:00Z"), 100)
-        .forEach {
-            println("Size ${it.size}")
-            println(it)
-            println()
-        }
+    val time = measureTimeMillis {
+        network.allTripsNew(berlin, hannover, Instant.parse("2024-01-01T00:00:00Z"), 100)
+            .forEach {
+                println("Size ${it.size}")
+                println(it)
+                println()
+            }
+    }
+    println("Total time: $time ms")
 
 
 }

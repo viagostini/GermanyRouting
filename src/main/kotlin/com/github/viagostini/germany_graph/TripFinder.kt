@@ -31,6 +31,6 @@ class TripFinder(private val rideRepository: RideRepository) {
         val fromCity = network.getCity(from)
         val toCity = network.getCity(to)
 
-        return network.allTrips(fromCity, toCity, startInstant, cutoff)
+        return network.allTripsNew(fromCity, toCity, startInstant, cutoff)
     }
 }
