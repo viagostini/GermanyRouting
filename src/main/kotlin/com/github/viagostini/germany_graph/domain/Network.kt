@@ -83,8 +83,6 @@ class Network {
      *     - The depth of a trip has a maximum value, given by the [maxDepth] parameter.
      *     - The distance of a trip should be not be greater than [maxDistanceFactor] * Haversine(start, distance)
      *
-     * This method is probably too slow currently to be really useful in practice, but it is a good exercise.
-     *
      * The distance from the current city to the destination is used as a heuristic to guide the search. This improves
      * both the performance and the quality of the results, usually reducing the total travel time. Note that the trips
      * found may not be the optimal ones even with the heuristic.
@@ -96,92 +94,7 @@ class Network {
      *
      * @return list of all trips between [start] and [destination], or `null` if no path exists
      */
-    fun allTripsOld(start: City, destination: City, startInstant: Instant, maxDepth: Int): Sequence<Trip> {
-        val visited = mutableSetOf<City>()
-        val path = ArrayDeque<Ride>()
-
-        visited.add(start)
-
-        fun dfs(from: City, ride: Ride, instant: Instant): Sequence<Trip> {
-            return sequence {
-                visited.add(from)
-                path.addLast(ride)
-                val now = instant + ride.duration
-
-                if (from == destination) {
-                    yield(Trip(start, destination, path.toList()))
-                } else {
-                    ridesFrom(from)
-                        .filter {
-                            it.to !in visited &&
-                                    it.departureTime >= now &&
-                                    it.departureTime < now.plus(Duration.ofHours(5)) &&
-                                    start.distanceTo(it.to) + it.to.distanceTo(destination) < 2 * start.distanceTo(
-                                destination
-                            ) &&
-                                    it.duration < Duration.ofHours(20) // remove some outliers
-                        }
-                        .sortedBy { it.to.distanceTo(destination) }
-                        .forEach { if (path.size < maxDepth) yieldAll(dfs(it.to, it, now)) }
-                }
-
-                path.removeLast()
-                visited.remove(from)
-            }
-        }
-
-        return ridesFrom(start)
-            .asSequence()
-            .filter {
-                it.departureTime >= startInstant &&
-                        it.departureTime < startInstant.plus(Duration.ofDays(1)) &&
-                        it.duration < Duration.ofHours(20)
-            }
-            .flatMap { dfs(it.to, it, it.departureTime) }
-    }
-
     fun allTrips(start: City, destination: City, startInstant: Instant, maxDepth: Int): Sequence<Trip> {
-        val visited = mutableSetOf<City>()
-        val path = ArrayDeque<Ride>()
-
-        visited.add(start)
-
-        fun dfs(from: City, ride: Ride, instant: Instant): Sequence<Trip> {
-            return sequence {
-                visited.add(from)
-                path.addLast(ride)
-                val now = instant + ride.duration
-
-                fun allowedRide(ride: Ride): Boolean {
-                    if (ride.to in visited) return false
-                    if (ride.departureTime < now) return false
-                    if (ride.departureTime > now.plus(Duration.ofHours(5))) return false
-
-                    return true
-                }
-
-                if (from == destination) {
-                    yield(Trip(start, destination, path.toList()))
-                } else {
-                    ridesFrom(from)
-                        .filter { allowedRide(it) }
-                        .sortedBy { it.to.distanceTo(destination) }
-                        .forEach { if (path.size < maxDepth) yieldAll(dfs(it.to, it, now)) }
-                }
-
-                path.removeLast()
-                visited.remove(from)
-            }
-        }
-
-        return ridesFrom(start)
-            .asSequence()
-            .filter { it.departureTime >= startInstant && it.departureTime < startInstant.plus(Duration.ofDays(1)) }
-            .flatMap { dfs(it.to, it, it.departureTime) }
-    }
-
-
-    fun allTripsNew(start: City, destination: City, startInstant: Instant, maxDepth: Int): Sequence<Trip> {
         val visited = mutableSetOf<City>()
         val path = ArrayDeque<Ride>()
 

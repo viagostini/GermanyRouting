@@ -146,7 +146,7 @@ fun main() {
 
     println("===============================================")
     val time = measureTimeMillis {
-        network.allTripsNew(berlin, hannover, Instant.parse("2024-01-01T00:00:00Z"), 100)
+        network.allTrips(berlin, hannover, Instant.parse("2024-01-01T00:00:00Z"), 100)
             .forEach {
                 println("Size ${it.size}")
                 println(it)
