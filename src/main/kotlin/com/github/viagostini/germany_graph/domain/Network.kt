@@ -205,7 +205,7 @@ class Network {
                 else ridesFromWithin(ride.to, ride.arrivalTime, ride.arrivalTime.plus(departureWindow))
 
            nextRides
-                .filter { it.to !in visited && isDestinationWithinRange(it) }
+                .filter { it.to !in visited && isDestinationWithinRange(it) && path.size < maxDepth }
                 .sortedBy { it.to.distanceTo(destination) }
                 .forEach {
                     path.addLast(it)
