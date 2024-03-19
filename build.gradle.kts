@@ -25,6 +25,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.postgresql:postgresql:42.3.1")
+    implementation("org.jgrapht:jgrapht-core:1.5.2")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
