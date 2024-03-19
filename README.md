@@ -13,9 +13,6 @@ I feel like it can be a good template for experimenting.
 
 ### Data
 The dataset I am using for this project right now is the [Long Distance Rail Germany](https://gtfs.de/en/feeds/de_fv/).
-My intention is to test with [Regional Rail Germany](https://gtfs.de/en/feeds/de_rv/) and [Germany Full](https://gtfs.de/en/feeds/de_full/)
-datasets, to increase the volume of data and see how that affects the system.
-
 I have used a Python script to do some data cleaning and transformation, and saved the resulting data in a Postgres
 table.
 
@@ -24,231 +21,35 @@ The API is a Spring Boot Kotlin application that reads the data from the Postgre
 memory. It has a few endpoints to query the network, but currently my focus is not to provide CRUD methods to manage
 the data.
 
-The API endpoints which return only a single trip return a JSON with `found` and `trip` fields, where the first one is a
-boolean indicating if a trip was found, and the second one is an array of rides representing the trip and a `duration`
-field representing the total duration of the trip. If a trip was not found, the `trip` field will be `null`.
+The API has only one endpoint that returns a JSON with `found`, `count` and `trip` fields, where the first one is a
+boolean indicating if any trip was found, the second one is the number of trips that were found, and the last one is
+an array containing the trips. Each trip is itself a JSON object with `from`, `to`, `rides`, `size`, `duration`, `startTime`,
+`endTime` and `numberOfLineTransfers` fields, which should be self-explanatory.
 
-In the case of endpoints finding all trips, the response will also contain a `count` field with the number of trips
-found, and a `trips` field, where each object is an array of rides.
+### Results
+Some tests I have already run:
 
-**Example: Shortest trip between Berlin Hbf and Hamburg Hbf with Dijkstra algorithm**
-```json
-// http://localhost:8080/api/trips/shortest?from=Berlin%20Hbf&to=Hamburg%20Hbf
+* Praha hl.n. to Paris Est (limit = 100, cutoff = 20, startDay = 2024-03-01):
+  * 100 trips found
+  * 47ms request execution time
+  * Size of trips around 20
+  * High number of line transfers, between 8 and 10
 
-{
-    "found": true,
-    "trip": {
-        "from": {
-            "name": "Berlin Hbf"
-        },
-        "to": {
-            "name": "Hamburg Hbf"
-        },
-        "duration": "PT1H41M",
-        "rides": [
-            {
-                "from": {
-                    "name": "Berlin Hbf"
-                },
-                "to": {
-                    "name": "Berlin-Spandau"
-                },
-                "duration": "PT8M"
-            },
-            {
-                "from": {
-                    "name": "Berlin-Spandau"
-                },
-                "to": {
-                    "name": "Hamburg Hbf"
-                },
-                "duration": "PT1H33M"
-            }
-        ]
-    }
-}
-```
+* Paris Est to Berlin Hbf (limit = 100, cutoff = 20, startDay = 2024-02-18):
+  * 100 trips found
+  * 32 ms request execution time
+  * Most sizes of trips between 9 and 20, some ~5
+  * Varied number of transfers, between 5 and 9 
 
-**Example: Any trip between Berlin Hbf and Hamburg Hbf with DFS algorithm**
-```json
-// http://localhost:8080/api/trips/anyDFS?from=Berlin%20Hbf&to=Hamburg%20Hbf
+* Berlin Hbf to München Hbf (limit = 100, cutoff = 20, startDay = 2024-02-18):
+  * 100 trips found
+  * 57 ms request execution time
+  * Size of trips between 1 and 20
+  * From 0 to 12 transfers
+  * Probably could use some optimization in terms of unnecessary rides/transfers.
 
-
-{
-    "found": true,
-    "trip": [
-        {
-            "from": {
-                "name": "Berlin Hbf"
-            },
-            "to": {
-                "name": "Berlin-Spandau"
-            },
-            "duration": "PT8M"
-        },
-        {
-            "from": {
-                "name": "Berlin-Spandau"
-            },
-            "to": {
-                "name": "Wittenberge"
-            },
-            "duration": "PT39M"
-        },
-        {
-            "from": {
-                "name": "Wittenberge"
-            },
-            "to": {
-                "name": "Ludwigslust"
-            },
-            "duration": "PT16M"
-        },
-        {
-            "from": {
-                "name": "Ludwigslust"
-            },
-            "to": {
-                "name": "Hamburg Hbf"
-            },
-            "duration": "PT52M"
-        }
-    ]
-}
-```
-
-**Example: Any trip between Berlin Hbf and Hamburg Hbf with BFS algorithm**
-```json
-
-// http://localhost:8080/api/trips/anyBFS?from=Berlin%20Hbf&to=Hamburg%20Hbf
-
-{
-    "found": true,
-    "trip": {
-        "from": {
-            "name": "Berlin Hbf"
-        },
-        "to": {
-            "name": "Hamburg Hbf"
-        },
-        "duration": "PT1H44M",
-        "rides": [
-            {
-                "from": {
-                    "name": "Berlin Hbf"
-                },
-                "to": {
-                    "name": "Hamburg Hbf"
-                },
-                "duration": "PT1H44M"
-            }
-        ]
-    }
-}
-```
-
-**Example: All trips between Berlin Hbf and Hamburg Hbf (limited to 2 trips for brevity)**
-```json
-// http://localhost:8080/api/trips/all?from=Berlin%20Hbf&to=Hamburg%20Hbf
-
-{
-    "found": true,
-    "count": 2,
-    "trips": [
-        {
-            "from": {
-                "name": "Berlin Hbf"
-            },
-            "to": {
-                "name": "Hamburg Hbf"
-            },
-            "duration": "PT1H55M",
-            "rides": [
-                {
-                    "from": {
-                        "name": "Berlin Hbf"
-                    },
-                    "to": {
-                        "name": "Berlin-Spandau"
-                    },
-                    "duration": "PT8M"
-                },
-                {
-                    "from": {
-                        "name": "Berlin-Spandau"
-                    },
-                    "to": {
-                        "name": "Wittenberge"
-                    },
-                    "duration": "PT39M"
-                },
-                {
-                    "from": {
-                        "name": "Wittenberge"
-                    },
-                    "to": {
-                        "name": "Ludwigslust"
-                    },
-                    "duration": "PT16M"
-                },
-                {
-                    "from": {
-                        "name": "Ludwigslust"
-                    },
-                    "to": {
-                        "name": "Hamburg Hbf"
-                    },
-                    "duration": "PT52M"
-                }
-            ]
-        },
-        {
-            "from": {
-                "name": "Berlin Hbf"
-            },
-            "to": {
-                "name": "Hamburg Hbf"
-            },
-            "duration": "PT1H57M",
-            "rides": [
-                {
-                    "from": {
-                        "name": "Berlin Hbf"
-                    },
-                    "to": {
-                        "name": "Berlin-Spandau"
-                    },
-                    "duration": "PT8M"
-                },
-                {
-                    "from": {
-                        "name": "Berlin-Spandau"
-                    },
-                    "to": {
-                        "name": "Wittenberge"
-                    },
-                    "duration": "PT39M"
-                },
-                {
-                    "from": {
-                        "name": "Wittenberge"
-                    },
-                    "to": {
-                        "name": "Ludwigslust"
-                    },
-                    "duration": "PT16M"
-                },
-                {
-                    "from": {
-                        "name": "Ludwigslust"
-                    },
-                    "to": {
-                        "name": "Hamburg Hbf"
-                    },
-                    "duration": "PT54M"
-                }
-            ]
-        }
-    ]
-}
-```
+* Heidelberg Hbf to München Hbf (limit = 100, cutoff = 20, startDay = 2024-02-18):
+  * 100 trips found
+  * 48 ms request execution time
+  * Size of trips between 8 and 11
+  * From 2 to 4 transfers
